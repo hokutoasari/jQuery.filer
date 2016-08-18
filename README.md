@@ -28,7 +28,7 @@ Features
 
 Usage
 -------
-<b><a href="http://filer.grandesign.md/#instructions" target="blank">Instructions</a></b> | <b><a href="http://filer.grandesign.md/#demos" target="blank">Demos</a></b> | <b><a href="http://filer.grandesign.md/#documentation" target="blank">Documentation</a></b>
+<b><a href="http://filer.grandesign.md/#instructions" target="blank">Instructions</a></b> | <b><a href="http://filer.grandesign.md/#demos" id="demos" target="blank">Demos</a></b> | <b><a href="http://filer.grandesign.md/#documentation" target="blank">Documentation</a></b>
 
 Tips
 -------
