@@ -30,10 +30,6 @@ Usage
 -------
 <b><a href="http://filer.grandesign.md/#instructions" target="blank">Instructions</a></b> | <b><a href="http://filer.grandesign.md/#demos" target="blank">Demos</a></b> | <b><a href="http://filer.grandesign.md/#documentation" target="blank">Documentation</a></b>
 
-Tips
--------
-<a href="https://github.com/CreativeDream/jQuery.filer/issues/42#issuecomment-162446659">Remove file after rename by direct uploading</a>
-
 Contribute
 -------
 Want to be part of this project? Great! All are welcome!
