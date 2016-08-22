@@ -1,4 +1,4 @@
-jQuery.filer 1.0.5 - in progress <a href="https://github.com/CreativeDream/jQuery.filer/issues/59">v1.2</a>
+jQuery.filer 1.2
 ============
 jQuery.filer - Simple HTML5 File Uploader, a plugin tool for jQuery which change completely File Input and make it with multiple file selection, drag&drop support, different validations, thumbnails, icons, instant upload, print-screen upload and many other features and options.
 
@@ -28,7 +28,7 @@ Features
 
 Usage
 -------
-<b><a href="http://filer.grandesign.md/#instructions" target="blank">Instructions</a></b> | <b><a href="http://filer.grandesign.md/#demos" id="demos" target="blank">Demos</a></b> | <b><a href="http://filer.grandesign.md/#documentation" target="blank">Documentation</a></b>
+<b><a href="http://filer.grandesign.md/#instructions" target="blank">Instructions</a></b> | <b><a href="http://filer.grandesign.md/#demos" target="blank">Demos</a></b> | <b><a href="http://filer.grandesign.md/#documentation" target="blank">Documentation</a></b>
 
 Tips
 -------
@@ -60,4 +60,4 @@ PHP File Uploader is an easy to use, hi-performance File Upload Script which all
 
 License
 -------
-> Licensed under <a href="http://opensource.org/licenses/MIT">MIT license</a>.
+> Licensed under <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License 2.0</a>.

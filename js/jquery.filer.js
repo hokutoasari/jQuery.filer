@@ -1,8 +1,8 @@
 /*!
  * jQuery.filer
- * Copyright (c) 2015 CreativeDream
+ * Copyright (c) 2016 CreativeDream
  * Website: https://github.com/CreativeDream/jquery.filer
- * Version: 1.0.5 (19-Nov-2015)
+ * Version: 1.2 (22-Aug-2016)
  * Requires: jQuery v1.7.1 or later
  */
 (function($) {
@@ -25,8 +25,8 @@
 						f._changeInput();
 					},
 					_bindInput: function() {
-						if(n.changeInput && o.size() > 0) {
-							o.bind("click", f._clickHandler);
+						if(n.changeInput && o.length > 0) {
+							o.on("click", f._clickHandler);
 						}
 						s.on({
 							"focus": function() {
@@ -40,10 +40,10 @@
 							}
 						});
 						if(n.dragDrop) {
-							(o.length > 0 ? o : s)
-							.bind("drop", f._dragDrop.drop)
-								.bind("dragover", f._dragDrop.dragEnter)
-								.bind("dragleave", f._dragDrop.dragLeave);
+							o.on("drag dragstart dragend dragover dragenter dragleave drop",function(e) {e.preventDefault();  e.stopPropagation();});
+							o.on("drop", f._dragDrop.drop);
+							o.on("dragover", f._dragDrop.dragEnter);
+							o.on("dragleave", f._dragDrop.dragLeave);
 						}
 						if(n.uploadFile && n.clipBoardPaste) {
 							$(window)
@@ -51,8 +51,8 @@
 						}
 					},
 					_unbindInput: function() {
-						if(n.changeInput && o.size() > 0) {
-							o.unbind("click", f._clickHandler);
+						if(n.changeInput && o.length > 0) {
+							o.off("click", f._clickHandler);
 						}
 					},
 					_clickHandler: function() {
@@ -237,21 +237,21 @@
 										retry: function(data) {
 											return f._retryUpload(data);
 										}
-									})	
+									})
 								}
 						}
 					},
 					_filesCheck: function() {
 						var s = 0;
 						if(n.limit && f.files.length + f._itFl.length > n.limit) {
-							alert(f._assets.textParse(n.captions.errors.filesLimit));
+							n.dialogs.alert(f._assets.textParse(n.captions.errors.filesLimit));
 							return false
 						}
 						for(var t = 0; t < f.files.length; t++) {
-							var x = f.files[t].name.split(".")
+							var	file = f.files[t],
+								x = file.name.split(".")
 								.pop()
 								.toLowerCase(),
-								file = f.files[t],
 								m = {
 									name: file.name,
 									size: file.size,
@@ -259,24 +259,26 @@
 									type: file.type,
 									ext: x
 								};
-							if(n.extensions != null && $.inArray(x, n.extensions) == -1) {
-								alert(f._assets.textParse(n.captions.errors.filesType, m));
+							if(n.extensions != null && $.inArray(x, n.extensions) == -1 && $.inArray(m.type, n.extensions) == -1) {
+								n.dialogs.alert(f._assets.textParse(n.captions.errors.filesType, m));
 								return false;
-								break
 							}
 							if((n.maxSize != null && f.files[t].size > n.maxSize * 1048576) || (n.fileMaxSize != null && f.files[t].size > n.fileMaxSize * 1048576)) {
-								alert(f._assets.textParse(n.captions.errors.filesSize, m));
+								n.dialogs.alert(f._assets.textParse(n.captions.errors.filesSize, m));
 								return false;
-								break
 							}
 							if(file.size == 4096 && file.type.length == 0) {
+								n.dialogs.alert(f._assets.textParse(n.captions.errors.folderUpload, m));
 								return false;
-								break
 							}
+							if(n.onFileCheck != null && typeof n.onFileCheck == "function" ? n.onFileCheck(m, n, f._assets.textParse) === false : null){
+								return false;
+							}
+
 							s += f.files[t].size
 						}
 						if(n.maxSize != null && s >= Math.round(n.maxSize * 1048576)) {
-							alert(f._assets.textParse(n.captions.errors.filesSizeAll));
+							n.dialogs.alert(f._assets.textParse(n.captions.errors.filesSizeAll));
 							return false
 						}
 						if((n.addMore || n.uploadFile)) {
@@ -297,7 +299,8 @@
 								id = (f._itFc ? f._itFc.id : i),
 								name = file.name,
 								size = file.size,
-								type = file.type.split("/", 1)
+								url = file.file,
+								type = file.type ? file.type.split("/", 1) : ""
 								.toString()
 								.toLowerCase(),
 								ext = name.indexOf(".") != -1 ? name.split(".")
@@ -309,6 +312,7 @@
 									name: name,
 									size: size,
 									size2: f._assets.bytesToSize(size),
+									url: url,
 									type: type,
 									extension: ext,
 									icon: f._assets.getIcon(ext, type),
@@ -344,7 +348,7 @@
 						},
 						renderFile: function(file, html, opts) {
 							if(html.find('.jFiler-item-thumb-image')
-								.size() == 0) {
+								.length == 0) {
 								return false;
 							}
 							if(file.file && opts.type == "image") {
@@ -363,23 +367,56 @@
 									});
 								return true;
 							}
-							if(window.File && window.FileList && window.FileReader && opts.type == "image" && opts.size < 6e+6) {
+							if(window.File && window.FileList && window.FileReader && opts.type == "image" && opts.size < 1e+7) {
 								var y = new FileReader;
 								y.onload = function(e) {
-									var g = '<img src="' + e.target.result + '" draggable="false" />',
-										m = html.find('.jFiler-item-thumb-image.fi-loading');
-									$(g)
-										.error(function() {
-											g = f._thumbCreator.generateIcon(opts);
+									var m = html.find('.jFiler-item-thumb-image.fi-loading');
+									if(n.templates.canvasImage) {
+										var canvas = document.createElement('canvas'),
+											context = canvas.getContext('2d'),
+											img = new Image();
+
+										img.onload = function() {
+											var height = m.height(),
+												width = m.width(),
+												heightRatio = img.height / height,
+												widthRatio = img.width / width,
+												optimalRatio = heightRatio < widthRatio ? heightRatio : widthRatio,
+												optimalHeight = img.height / optimalRatio,
+												optimalWidth = img.width / optimalRatio,
+												steps = Math.ceil(Math.log(img.width / optimalWidth) / Math.log(2));
+
+											canvas.height = height;
+											canvas.width = width;
+
+											if(img.width < canvas.width || img.height < canvas.height || steps <= 1){
+												var x = img.width < canvas.width ? canvas.width/2 - img.width/2 : img.width > canvas.width ? -(img.width - canvas.width)/2 : 0,
+													y = img.height < canvas.height ? canvas.height/2 - img.height/2 : 0
+												context.drawImage(img, x, y, img.width, img.height);
+											} else {
+												var oc = document.createElement('canvas'),
+													octx = oc.getContext('2d');
+												oc.width = img.width * 0.5;
+												oc.height = img.height * 0.5;
+												octx.fillStyle = "#fff";
+												octx.fillRect(0, 0, oc.width, oc.height);
+												octx.drawImage(img, 0,0, oc.width,oc.height);
+												octx.drawImage(oc,0,0,oc.width * 0.5, oc.height * 0.5);
+
+												context.drawImage(oc, optimalWidth > canvas.width ? optimalWidth - canvas.width : 0, 0, oc.width * 0.5, oc.height * 0.5, 0,0, optimalWidth, optimalHeight);
+											}
+											m.removeClass('fi-loading').html('<img src="' + canvas.toDataURL("image/png") + '" draggable="false" />');
+										}
+										img.onerror = function() {
 											html.addClass('jFiler-no-thumbnail');
 											m.removeClass('fi-loading')
-												.html(g);
-										})
-										.load(function() {
-											m.removeClass('fi-loading')
-												.html(g);
-										});
-								};
+												.html(f._thumbCreator.generateIcon(opts));
+										}
+										img.src = e.target.result;
+									} else {
+										m.removeClass('fi-loading').html('<img src="' + e.target.result + '" draggable="false" />');
+									}
+								}
 								y.readAsDataURL(file);
 							} else {
 								var g = f._thumbCreator.generateIcon(opts),
@@ -420,16 +457,9 @@
 								var c = f._assets.text2Color(obj.extension);
 								if(c) {
 									var j = $(el)
-										.appendTo("body"),
-										h = j.css("box-shadow");
-									h = c + h.substring(h.replace(/^.*(rgba?\([^)]+\)).*$/, '$1')
-										.length, h.length);
-									j.css({
-											'-webkit-box-shadow': h,
-											'-moz-box-shadow': h,
-											'box-shadow': h
-										})
-										.attr('style', '-webkit-box-shadow: ' + h + '; -moz-box-shadow: ' + h + '; box-shadow: ' + h + ';');
+										.appendTo("body");
+
+									j.css('background-color', f._assets.text2Color(obj.extension));
 									el = j.prop('outerHTML');
 									j.remove();
 								}
@@ -454,10 +484,12 @@
 									.appendTo(appendTo);
 								l.on('click', n.templates._selectors.remove, function(e) {
 									e.preventDefault();
-									var cf = n.templates.removeConfirmation ? confirm(n.captions.removeConfirmation) : true;
-									if(cf) {
-										f._remove(params ? params.remove.event : e, params ? params.remove.el : $(this)
-											.closest(n.templates._selectors.item));
+									var m = [params ? params.remove.event : e, params ? params.remove.el : $(this).closest(n.templates._selectors.item)],
+										c = function(a){
+											f._remove(m[0], m[1]);
+										};
+									if(n.templates.removeConfirmation) {
+										n.dialogs.confirm(n.captions.removeConfirmation, c);
 									}
 								});
 							}
@@ -469,15 +501,17 @@
 						}
 					},
 					_upload: function(i) {
-						var el = f._itFc.html,
+						var c = f._itFl[i],
+							el = c.html,
 							formData = new FormData();
-						formData.append(s.attr('name'), f._itFc.file, (f._itFc.file.name ? f._itFc.file.name : false));
-						if(n.uploadFile.data != null && $.isPlainObject(n.uploadFile.data)) {
+						formData.append(s.attr('name'), c.file, (c.file.name ? c.file.name : false));
+						if(n.uploadFile.data != null && $.isPlainObject(typeof(n.uploadFile.data == "function") ? n.uploadFile.data(c.file) : n.uploadFile.data)) {
 							for(var k in n.uploadFile.data) {
 								formData.append(k, n.uploadFile.data[k])
 							}
 						}
-						f._ajax.send(el, formData, f._itFc);
+
+						f._ajax.send(el, formData, c);
 					},
 					_ajax: {
 						send: function(el, formData, c) {
@@ -498,8 +532,14 @@
 								complete: function(jqXHR, textStatus) {
 									c.ajax = false;
 									f._ajFc++;
+
+									if(n.uploadFile.synchron && c.id+1 < f._itFl.length) {
+										f._upload(c.id+1);
+									}
+
 									if(f._ajFc >= f.files.length) {
 										f._ajFc = 0;
+										s.get(0).value = "";
 										n.uploadFile.onComplete != null && typeof n.uploadFile.onComplete == "function" ? n.uploadFile.onComplete(l, p, o, s, jqXHR, textStatus) : null;
 									}
 								},
@@ -534,24 +574,25 @@
 					},
 					_dragDrop: {
 						dragEnter: function(e) {
-							e.preventDefault();
-							e.stopPropagation();
+							clearTimeout(f._dragDrop._drt);
 							p.addClass('dragged');
 							f._set('feedback', n.captions.drop);
 							n.dragDrop.dragEnter != null && typeof n.dragDrop.dragEnter == "function" ? n.dragDrop.dragEnter(e, o, s, p) : null;
 						},
 						dragLeave: function(e) {
-							e.preventDefault();
-							e.stopPropagation();
-							if(!f._dragDrop._dragLeaveCheck(e)) {
-								return false
-							}
-							p.removeClass('dragged');
-							f._set('feedback', n.captions.feedback);
-							n.dragDrop.dragLeave != null && typeof n.dragDrop.dragLeave == "function" ? n.dragDrop.dragLeave(e, o, s, p) : null;
+							clearTimeout(f._dragDrop._drt);
+							f._dragDrop._drt = setTimeout(function (e) {
+								if(!f._dragDrop._dragLeaveCheck(e)) {
+									f._dragDrop.dragLeave(e);
+									return false;
+								}
+								p.removeClass('dragged');
+								f._set('feedback', n.captions.feedback);
+								n.dragDrop.dragLeave != null && typeof n.dragDrop.dragLeave == "function" ? n.dragDrop.dragLeave(e, o, s, p) : null;
+							}, 100, e);
 						},
 						drop: function(e) {
-							e.preventDefault();
+							clearTimeout(f._dragDrop._drt);
 							p.removeClass('dragged');
 							f._set('feedback', n.captions.feedback);
 							if(e && e.originalEvent && e.originalEvent.dataTransfer && e.originalEvent.dataTransfer.files && e.originalEvent.dataTransfer.files.length > 0) {
@@ -560,13 +601,13 @@
 							n.dragDrop.drop != null && typeof n.dragDrop.drop == "function" ? n.dragDrop.drop(e.originalEvent.dataTransfer.files, e, o, s, p) : null;
 						},
 						_dragLeaveCheck: function(e) {
-							var related = e.relatedTarget,
-								inside = false;
-							if(related !== o) {
-								if(related) {
-									inside = $.contains(o, related);
-								}
-								if(inside) {
+							var related = $(e.currentTarget),
+								insideEls = 0;
+							if(!related.is(o)) {
+								insideEls = o.find(related).length;
+
+								if(insideEls > 0) {
+									debugger;
 									return false;
 								}
 							}
@@ -633,7 +674,9 @@
 					},
 					_onSelect: function(i) {
 						if(n.uploadFile && !$.isEmptyObject(n.uploadFile)) {
-							f._upload(i)
+							if(!n.uploadFile.synchron || (n.uploadFile.synchron && i == 0)) {
+								f._upload(f._itFc.id)
+							}
 						}
 						n.onSelect != null && typeof n.onSelect == "function" ? n.onSelect(f.files[i], f._itFc.html, l, p, o, s) : null;
 						if(i + 1 >= f.files.length) {
@@ -751,7 +794,7 @@
 						if(el.binded) {
 							if(typeof(el.data.id) != "undefined") {
 								el = l.find(n.templates._selectors.item + "[data-jfiler-index='" + el.data.id + "']");
-								if(el.size() == 0) {
+								if(el.length == 0) {
 									return false
 								}
 							}
@@ -767,7 +810,7 @@
 									.first(),
 									item = f._itFl[id],
 									val = [];
-								if(input.size() == 0) {
+								if(input.length == 0) {
 									input = $('<input type="hidden" name="jfiler-items-exclude-' + (n.excludeName ? n.excludeName : (s.attr("name")
 										.slice(-2) != "[]" ? s.attr("name") : s.attr("name")
 										.substring(0, s.attr("name")
@@ -781,14 +824,13 @@
 										var current_input = item.input,
 											count_same_input = 0;
 										f._itFl.filter(function(val, index) {
-											if(val.file._choosed && val.input.get(0) == current_input.get(0)) count_same_input++;
+											if(val.file._choosed && current_input && val.input.get(0) == current_input.get(0)) count_same_input++;
 										});
 										if(count_same_input == 1) {
 											f._itFr = f._itFr.filter(function(val, index) {
 												return val.file._choosed ? val.input.get(0) != current_input.get(0) : true;
 											});
-											current_input.val("");
-											f._prEr = false;
+											current_input.get(0).value = "";
 										}
 									}
 									for(var i = 0; i < f._itFr.length; i++) {
@@ -826,8 +868,9 @@
 							callback(el, id);
 							return;
 						}
-						n.onRemove != null && typeof n.onRemove == "function" ? n.onRemove(el, f._itFl[id].file, id, l, p, o, s) : null;
-						callback(el, id);
+						if(n.onRemove != null && typeof n.onRemove == "function" ? n.onRemove(el, f._itFl[id].file, id, l, p, o, s) !== false : true) {
+							callback(el, id);
+						}
 					},
 					_addToMemory: function(i) {
 						f._itFl.push({
@@ -837,7 +880,7 @@
 							ajax: false,
 							uploaded: false,
 						});
-						if(n.addMore && !f.files[i]._appended) f._itFl[f._itFl.length - 1].input = s;
+						if(n.addMore || f.files[i]._appended) f._itFl[f._itFl.length - 1].input = s;
 						f._itFc = f._itFl[f._itFl.length - 1];
 						s.prop("jFiler")
 							.files_list = f._itFl;
@@ -873,6 +916,7 @@
 							opts = $.extend({}, {
 								limit: n.limit,
 								maxSize: n.maxSize,
+								fileMaxSize: n.fileMaxSize,
 								extensions: n.extensions ? n.extensions.join(',') : null,
 							}, (opts && $.isPlainObject(opts) ? opts : {}), n.options);
 							switch(typeof(text)) {
@@ -913,10 +957,11 @@
 					_itFl: [],
 					_itFc: null,
 					_itFr: [],
+					_itPl: [],
 					_ajFc: 0,
 					_prEr: false
 				}
-			
+
 			s.on("filer.append", function(e, data) {
 				f._append(e, data)
 			}).on("filer.remove", function(e, data) {
@@ -931,9 +976,9 @@
 			}).on("filer.retry", function(e, data) {
 				return f._retryUpload(e, data)
 			});
-			
+
 			f.init();
-			
+
 			return this;
 		});
 	};
@@ -953,6 +998,7 @@
 			progressBar: '<div class="bar"></div>',
 			itemAppendToEnd: false,
 			removeConfirmation: true,
+			canvasImage: true,
 			_selectors: {
 				list: '.jFiler-items-list',
 				item: '.jFiler-item',
@@ -971,10 +1017,19 @@
 		beforeShow: null,
 		beforeSelect: null,
 		onSelect: null,
+		onFileCheck: null,
 		afterShow: null,
 		onRemove: null,
 		onEmpty: null,
 		options: null,
+		dialogs: {
+			alert: function(text) {
+				return alert(text);
+			},
+			confirm: function (text, callback) {
+				confirm(text) ? callback() : null;
+			}
+		},
 		captions: {
 			button: "Choose Files",
 			feedback: "Choose files To Upload",
@@ -985,7 +1040,8 @@
 				filesLimit: "Only {{fi-limit}} files are allowed to be uploaded.",
 				filesType: "Only Images are allowed to be uploaded.",
 				filesSize: "{{fi-name}} is too large! Please upload file up to {{fi-fileMaxSize}} MB.",
-				filesSizeAll: "Files you've choosed are too large! Please upload files up to {{fi-maxSize}} MB."
+				filesSizeAll: "Files you've choosed are too large! Please upload files up to {{fi-maxSize}} MB.",
+				folderUpload: "You are not allowed to upload folders."
 			}
 		}
 	}
