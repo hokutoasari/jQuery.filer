@@ -1,2 +1,2 @@
-[PHP] Uploader 0.2
+[PHP] Uploader 0.3
 https://github.com/CreativeDream/php-uploader
