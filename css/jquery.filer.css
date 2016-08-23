@@ -57,29 +57,16 @@ span.jFiler-icon-file i[class*="icon-jfi-"] {
 }
 
 span.jFiler-icon-file.f-image {
-    box-shadow: 42px -55px 0 0 #e15955 inset;
-}
-
-span.jFiler-icon-file.f-image:after {
-    border-left-color: #c6393f;
+    background-color: #e15955;
 }
 
 span.jFiler-icon-file.f-video {
-    box-shadow: 42px -55px 0 0 #4183d7 inset;
-}
-
-span.jFiler-icon-file.f-video:after {
-    border-left-color: #446cb3;
+    background-color: #4183d7;
 }
 
 span.jFiler-icon-file.f-audio {
-    box-shadow: 42px -55px 0 0 #5bab6e inset;
+    background-color: #5bab6e;
 }
-
-span.jFiler-icon-file.f-audio:after {
-    border-left-color: #448353;
-}
-
 
 /* Progress Bar */
 .jFiler-jProgressBar {
