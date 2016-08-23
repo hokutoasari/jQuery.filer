@@ -493,6 +493,8 @@
                                         };
                                     if (n.templates.removeConfirmation) {
                                         n.dialogs.confirm(n.captions.removeConfirmation, c);
+                                    } else {
+                                        c();
                                     }
                                 });
                             }
