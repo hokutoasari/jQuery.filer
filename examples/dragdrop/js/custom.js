@@ -21,7 +21,7 @@ $(document).ready(function(){
 												<span class="jFiler-item-others">{{fi-size2}}</span>\
 											</div>\
 										</div>\
-										</div>\
+									</div>\
 									{{fi-image}}\
 								</div>\
 								<div class="jFiler-item-assets jFiler-row">\
@@ -40,9 +40,13 @@ $(document).ready(function(){
 								<div class="jFiler-item-inner">\
 									<div class="jFiler-item-thumb">\
 										<div class="jFiler-item-status"></div>\
-										<div class="jFiler-item-info">\
-											<span class="jFiler-item-title"><b title="{{fi-name}}">{{fi-name | limitTo: 25}}</b></span>\
-											<span class="jFiler-item-others">{{fi-size2}}</span>\
+										<div class="jFiler-item-thumb-overlay">\
+											<div class="jFiler-item-info">\
+												<div style="display:table-cell;vertical-align: middle;">\
+													<span class="jFiler-item-title"><b title="{{fi-name}}">{{fi-name}}</b></span>\
+													<span class="jFiler-item-others">{{fi-size2}}</span>\
+												</div>\
+											</div>\
 										</div>\
 										{{fi-image}}\
 									</div>\
