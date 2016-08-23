@@ -825,19 +825,6 @@
                                 if (item.file._choosed || item.file._appended || item.uploaded) {
                                     f._prEr = true;
                                     f._itFr.push(item);
-                                    if (n.addMore) {
-                                        var current_input = item.input,
-                                            count_same_input = 0;
-                                        f._itFl.filter(function(val, index) {
-                                            if (val.file._choosed && current_input && val.input.get(0) == current_input.get(0)) count_same_input++;
-                                        });
-                                        if (count_same_input == 1) {
-                                            f._itFr = f._itFr.filter(function(val, index) {
-                                                return val.file._choosed ? val.input.get(0) != current_input.get(0) : true;
-                                            });
-                                            current_input.get(0).value = "";
-                                        }
-                                    }
                                     for (var i = 0; i < f._itFr.length; i++) {
                                         val.push(f._itFr[i].file.name);
                                     }
