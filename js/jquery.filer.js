@@ -431,8 +431,8 @@
                         },
                         generateIcon: function(obj) {
                             var m = new Array(3);
-                            if (obj && obj.type && obj.extension) {
-                                switch (obj.type) {
+                            if (obj && obj.type && obj.type[0] && obj.extension) {
+                                switch (obj.type[0]) {
                                     case "image":
                                         m[0] = "f-image";
                                         m[1] = "<i class=\"icon-jfi-file-image\"></i>"
