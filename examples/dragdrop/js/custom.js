@@ -1,4 +1,5 @@
 $(document).ready(function(){
+
 	//Example 2
 	$("#filer_input2").filer({
 		limit: null,
@@ -76,6 +77,7 @@ $(document).ready(function(){
 			dragEnter: null,
 			dragLeave: null,
 			drop: null,
+			dragContainer: null,
 		},
 		uploadFile: {
 			url: "./php/ajax_upload_file.php",
@@ -107,6 +109,7 @@ $(document).ready(function(){
 		},
 		files: null,
 		addMore: false,
+		allowDuplicates: true,
 		clipBoardPaste: true,
 		excludeName: null,
 		beforeRender: null,
