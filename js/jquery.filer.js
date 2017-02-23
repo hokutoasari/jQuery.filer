@@ -412,13 +412,13 @@
                                 var g = '<img src="' + file.file + '" draggable="false" />',
                                     m = html.find('.jFiler-item-thumb-image.fi-loading');
                                 $(g)
-                                    .error(function() {
+                                    .on('error', function() {
                                         g = f._thumbCreator.generateIcon(opts);
                                         html.addClass('jFiler-no-thumbnail');
                                         m.removeClass('fi-loading')
                                             .html(g);
                                     })
-                                    .load(function() {
+                                    .on('load', function() {
                                         m.removeClass('fi-loading')
                                             .html(g);
                                     });
